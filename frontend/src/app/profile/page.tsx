@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit, Play, X } from "lucide-react"; // Import all necessary Lucide icons
-import { useAuth } from "../pages/auth/AuthContext";
+import axios from "axios";
 
 const Button = ({
   children,
@@ -405,9 +405,19 @@ const EditProfileModal = ({
   const [newFullName, setNewFullName] = useState(currentFullName);
   const [newEmail, setNewEmail] = useState(currentEmail);
 
-  const handleSave = () => {
-    onSave(newFullName, newEmail);
-    console.log(newEmail, newFullName);
+  const handleSave = async () => {
+    const data = await axios.get("http://localhost:4000/profile/me", {
+      params: {
+        name: newFullName,
+        email: newEmail,
+      },
+    });
+
+    onSave(data.name, data.email);
+    await axios.put("http://localhost:4000/profile/update", {
+      name: newFullName,
+      email: newEmail,
+    });
     onClose();
   };
 
@@ -596,8 +606,6 @@ export default function App() {
   // State for modal visibility
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
-
-  const { logout } = useAuth();
 
   // Set dark mode initially and toggle with switch
   useEffect(() => {

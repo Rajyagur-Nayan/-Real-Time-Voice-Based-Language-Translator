@@ -1,9 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
-import { LoginDialog } from "./auth/Login";
-import { RegisterDialog } from "./auth/Register";
-import { useAuth } from "./auth/AuthContext";
 
 const Navbar = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
@@ -184,7 +181,7 @@ const Navbar = () => {
 
       {/* Dialogs */}
       {isLoginDialogOpen && (
-        <LoginDialog onClose={() => setIsLoginDialogOpen(false)} />
+        <isLoginDialogOpen onClose={() => setIsLoginDialogOpen(false)} />
       )}
       {isRegisterDialogOpen && (
         <RegisterDialog onClose={() => setIsRegisterDialogOpen(false)} />

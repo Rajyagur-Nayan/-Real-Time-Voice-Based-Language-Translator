@@ -1,5 +1,5 @@
 import React from "react";
-import Translator from "../pages/Translater";
+import Translator from "../(root)/pages/Translater";
 
 const page = () => {
   return (
