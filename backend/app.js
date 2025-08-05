@@ -23,5 +23,7 @@ app.get("/", (req, res) => {
 
 app.use("/signup", require("./src/routes/user/signup.js"));
 app.use("/login", require("./src/routes/user/login.js"));
+app.use("/translate", require("./src/routes/translate/translate.js"));
+app.use("/code", require("./src/routes/code/code.js"));
 
 module.exports = app;
