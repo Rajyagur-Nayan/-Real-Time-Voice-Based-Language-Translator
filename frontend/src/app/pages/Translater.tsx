@@ -151,6 +151,7 @@ const Translator = () => {
     }
   };
 
+<<<<<<< HEAD
   // Function to handle translation using your backend API
   const handleTranslation = async (textToTranslate: string) => {
     if (!textToTranslate.trim()) {
@@ -325,6 +326,8 @@ const Translator = () => {
     }
   };
 
+=======
+>>>>>>> 2ead905a92a9cba4ca458bad832312e92cd40aaa
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 font-inter">
       {/* Real-time Translator Section */}

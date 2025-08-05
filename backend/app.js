@@ -28,6 +28,7 @@ app.use("/code", require("./src/routes/code/code.js"));
 app.use("/export", require("./src/routes/history/export.js"));
 app.use("/history",require("./src/routes/history/aiHistory.js"))
 app.use('/profile', require('./src/routes/profile/profile.js'));
+app.use('/chat', require('./src/routes/chat/chat.js'));
 
 
 module.exports = app;
