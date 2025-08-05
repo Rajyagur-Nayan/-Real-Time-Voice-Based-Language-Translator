@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-// import { Button } from "@/components/ui/button";
+
 const Button = ({ children, className, ...props }: any) => (
   <button
     className={`px-6 py-3 rounded-full font-semibold transition-colors duration-300 ${className}`}
@@ -42,20 +42,20 @@ const Home = () => {
     <div className="min-h-screen bg-gray-950 text-gray-100 font-inter">
       {/* Hero Section */}
       <motion.section
-        className="relative py-20 text-center overflow-hidden"
+        className="relative py-16 md:py-20 text-center overflow-hidden"
         initial="hidden"
         animate="visible"
         variants={staggerContainerVariants}
       >
         <div className="container mx-auto px-4">
           <motion.h1
-            className="text-5xl md:text-6xl font-extrabold mb-4 text-purple-300"
+            className="text-4xl md:text-6xl font-extrabold mb-4 text-purple-300"
             variants={fadeInVariants}
           >
             LingoBridge AI
           </motion.h1>
           <motion.p
-            className="text-xl md:text-2xl text-gray-300 mb-10"
+            className="text-lg md:text-2xl text-gray-300 mb-8 md:mb-10"
             variants={fadeInVariants}
           >
             Speak Freely. Anywhere. Anytime.
@@ -79,7 +79,7 @@ const Home = () => {
             />
           </motion.div>
 
-          <motion.div variants={fadeInVariants} className="mt-10">
+          <motion.div variants={fadeInVariants} className="mt-8 md:mt-10">
             <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700">
               Start Translating
             </Button>
@@ -88,10 +88,10 @@ const Home = () => {
       </motion.section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-gray-900">
+      <section className="py-16 md:py-20 bg-gray-900">
         <div className="container mx-auto px-4 text-center">
           <motion.h2
-            className="text-4xl font-bold mb-12 text-purple-300"
+            className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-purple-300"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
@@ -100,7 +100,7 @@ const Home = () => {
             How It Works
           </motion.h2>
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, amount: 0.5 }}
@@ -111,7 +111,7 @@ const Home = () => {
                 <div className="flex justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-16 w-16 text-blue-400"
+                    className="h-12 w-12 md:h-16 md:w-16 text-blue-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -124,10 +124,10 @@ const Home = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">
+                <h3 className="text-lg md:text-xl font-semibold mb-2 text-white">
                   Record Your Voice
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-sm md:text-base text-gray-400">
                   Simply tap the microphone button to begin speaking in your
                   chosen language.
                 </p>
@@ -138,7 +138,7 @@ const Home = () => {
                 <div className="flex justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-16 w-16 text-green-400"
+                    className="h-12 w-12 md:h-16 md:w-16 text-green-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -151,10 +151,10 @@ const Home = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">
+                <h3 className="text-lg md:text-xl font-semibold mb-2 text-white">
                   Instant Translation
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-sm md:text-base text-gray-400">
                   Our advanced AI instantly processes and translates your speech
                   into the target language.
                 </p>
@@ -165,7 +165,7 @@ const Home = () => {
                 <div className="flex justify-center mb-4">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-16 w-16 text-red-400"
+                    className="h-12 w-12 md:h-16 md:w-16 text-red-400"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -178,10 +178,10 @@ const Home = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-2 text-white">
+                <h3 className="text-lg md:text-xl font-semibold mb-2 text-white">
                   Hear the Result
                 </h3>
-                <p className="text-gray-400">
+                <p className="text-sm md:text-base text-gray-400">
                   Play the translated audio or read the displayed text for
                   seamless communication.
                 </p>
@@ -192,10 +192,10 @@ const Home = () => {
       </section>
 
       {/* Extra Content: Our Mission Section */}
-      <section className="py-20 bg-gray-950">
+      <section className="py-16 md:py-20 bg-gray-950">
         <div className="container mx-auto px-4 text-center">
           <motion.h2
-            className="text-4xl font-bold mb-12 text-purple-300"
+            className="text-3xl md:text-4xl font-bold mb-8 md:mb-12 text-purple-300"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.5 }}
@@ -204,20 +204,20 @@ const Home = () => {
             Our Mission
           </motion.h2>
           <motion.div
-            className="max-w-3xl mx-auto bg-gray-800 p-8 rounded-lg shadow-xl border border-gray-700"
+            className="max-w-3xl mx-auto bg-gray-800 p-6 md:p-8 rounded-lg shadow-xl border border-gray-700"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true, amount: 0.5 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <p className="text-lg text-gray-300 leading-relaxed mb-4">
+            <p className="text-base md:text-lg text-gray-300 leading-relaxed mb-4">
               At LingoBridge AI, our mission is to break down language barriers
               and foster global understanding. We believe that communication
               should be effortless, allowing individuals from diverse
               backgrounds to connect, share ideas, and collaborate without
               limitations.
             </p>
-            <p className="text-lg text-gray-300 leading-relaxed">
+            <p className="text-base md:text-lg text-gray-300 leading-relaxed">
               Through cutting-edge artificial intelligence and intuitive design,
               we empower users to express themselves authentically in any
               language, anywhere in the world. Our commitment is to continuous
