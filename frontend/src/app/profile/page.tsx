@@ -585,9 +585,6 @@ const EditLanguageModal = ({
   );
 };
 
-// The Navbar component is now removed as requested
-// const Navbar = () => { ... };
-
 export default function App() {
   // State for form fields
   const [fullName, setFullName] = useState("Alice Johnson");

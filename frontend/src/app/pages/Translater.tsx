@@ -1,7 +1,16 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
+// Extend the Window interface to include SpeechRecognition types
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}
+
+// Simulated Shadcn UI components (simplified for this standalone example)
 const Button = ({ children, className, ...props }: any) => (
   <button
     className={`px-6 py-3 rounded-full font-semibold transition-colors duration-300 ${className}`}
@@ -33,19 +42,58 @@ const Translator = () => {
   const [translatedText, setTranslatedText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [audioPlayer, setAudioPlayer] = useState<HTMLAudioElement | null>(null); // State to hold the Audio object
+  const [audioPlayer, setAudioPlayer] = useState<HTMLAudioElement | null>(null);
+  const [isListening, setIsListening] = useState(false); // State for speech recognition listening
+  const recognitionRef = useRef<any>(null); // Ref for SpeechRecognition object
+
+  // New state for selected languages
+  const [sourceLanguage, setSourceLanguage] = useState("en-US"); // Default to English (US)
+  const [targetLanguage, setTargetLanguage] = useState("es"); // Default to Spanish
 
   // Set dark mode initially
   useEffect(() => {
     document.documentElement.classList.add("dark");
   }, []);
 
-  // Initialize AudioContext for playing PCM audio
+  // Initialize Audio object for playing TTS
   useEffect(() => {
     if (typeof window !== "undefined" && !audioPlayer) {
       setAudioPlayer(new Audio());
     }
   }, [audioPlayer]);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+
+      recognition.continuous = false; // Set to false for single utterance
+      recognition.lang = sourceLanguage; // Set language based on state
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setSourceText(transcript);
+        // Automatically trigger translation after speech is recognized
+        handleTranslation(transcript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        setError(`Speech recognition error: ${event.error}`);
+        setIsListening(false);
+        setIsLoading(false); // Stop loading if speech recognition fails
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+    } else {
+      setError("Speech Recognition API not supported in this browser.");
+    }
+  }, [sourceLanguage]); // Re-initialize recognition if source language changes
 
   const fadeInVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -53,7 +101,7 @@ const Translator = () => {
   };
 
   // Helper function to convert base64 to ArrayBuffer
-  const base64ToArrayBuffer = (base64: any) => {
+  const base64ToArrayBuffer = (base64: string) => {
     const binaryString = window.atob(base64);
     const len = binaryString.length;
     const bytes = new Uint8Array(len);
@@ -64,7 +112,7 @@ const Translator = () => {
   };
 
   // Helper function to convert PCM to WAV Blob
-  const pcmToWav = (pcmData: any, sampleRate: any) => {
+  const pcmToWav = (pcmData: ArrayBuffer, sampleRate: number) => {
     const pcm16 = new Int16Array(pcmData);
     const numChannels = 1; // Mono audio
     const bitsPerSample = 16;
@@ -97,181 +145,185 @@ const Translator = () => {
     return blob;
   };
 
-  const writeString = (view: any, offset: any, string: any) => {
+  const writeString = (view: DataView, offset: number, string: string) => {
     for (let i = 0; i < string.length; i++) {
       view.setUint8(offset + i, string.charCodeAt(i));
     }
   };
 
-  // Function to simulate speech input and trigger translation
-  //   const handleMicrophoneClick = async () => {
-  //     const speechInput = prompt(
-  //       "Please type what you want to 'speak' for translation:"
-  //     );
-  //     if (!speechInput) return;
+  // Function to handle translation using your backend API
+  const handleTranslation = async (textToTranslate: string) => {
+    if (!textToTranslate.trim()) {
+      setTranslatedText("");
+      return;
+    }
 
-  //     setSourceText(speechInput);
-  //     setIsLoading(true);
-  //     setError("");
-  //     setTranslatedText(""); // Clear previous translation
+    setIsLoading(true);
+    setError("");
+    setTranslatedText(""); // Clear previous translation
 
-  //     let chatHistory = [];
-  //     chatHistory.push({
-  //       role: "user",
-  //       parts: [{ text: `Translate "${speechInput}" into Spanish.` }],
-  //     }); // Example prompt for translation
-  //     const payload = { contents: chatHistory };
-  //     const apiKey = "";
-  //     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const payload = {
+      sourceText: textToTranslate,
+      sourceLanguage: sourceLanguage,
+      targetLanguage: targetLanguage,
+    };
 
-  //     try {
-  //       let response;
-  //       let retries = 0;
-  //       const MAX_RETRIES = 5;
-  //       const BASE_DELAY = 1000; // 1 second
+    const apiUrl = `http://localhost:4000/translate`; // Your backend URL
 
-  //       while (retries < MAX_RETRIES) {
-  //         response = await fetch(apiUrl, {
-  //           method: "POST",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify(payload),
-  //         });
+    try {
+      let response;
+      let retries = 0;
+      const MAX_RETRIES = 5;
+      const BASE_DELAY = 1000; // 1 second
 
-  //         if (response.ok) {
-  //           break; // Success
-  //         } else if (response.status === 429) {
-  //           // Too Many Requests - implement exponential backoff
-  //           const delay = BASE_DELAY * Math.pow(2, retries);
-  //           console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
-  //           await new Promise((resolve) => setTimeout(resolve, delay));
-  //           retries++;
-  //         } else {
-  //           // Other errors
-  //           throw new Error(
-  //             `API error: ${response.status} ${response.statusText}`
-  //           );
-  //         }
-  //       }
+      while (retries < MAX_RETRIES) {
+        response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-  //       if (!response.ok) {
-  //         throw new Error("Failed to get response after multiple retries.");
-  //       }
+        if (response.ok) {
+          break; // Success
+        } else if (response.status === 429) {
+          const delay = BASE_DELAY * Math.pow(2, retries);
+          console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          retries++;
+        } else {
+          throw new Error(
+            `API error: ${response.status} ${response.statusText}`
+          );
+        }
+      }
 
-  //       const result = await response.json();
-  //       if (
-  //         result.candidates &&
-  //         result.candidates.length > 0 &&
-  //         result.candidates[0].content &&
-  //         result.candidates[0].content.parts &&
-  //         result.candidates[0].content.parts.length > 0
-  //       ) {
-  //         const text = result.candidates[0].content.parts[0].text;
-  //         setTranslatedText(text);
-  //       } else {
-  //         setError("No translation found or unexpected API response structure.");
-  //       }
-  //     } catch (err) {
-  //       console.error("Error during translation:", err);
-  //       setError(`Failed to translate: ${err.message}`);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+      if (!response || !response.ok) {
+        throw new Error("Failed to get response after multiple retries.");
+      }
 
-  // Function to handle Text-to-Speech
-  //   const handlePlayTranslatedText = async () => {
-  //     if (!translatedText) {
-  //       setError("No translated text to play.");
-  //       return;
-  //     }
+      const result = await response.json();
+      // Assuming your backend returns the translated text directly in a 'translatedText' field
+      if (result && result.translatedText) {
+        setTranslatedText(result.translatedText);
+      } else {
+        setError(
+          "No translation found or unexpected backend response structure."
+        );
+      }
+    } catch (err: any) {
+      console.error("Error during translation:", err);
+      setError(`Failed to translate: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  //     setIsLoading(true);
-  //     setError("");
+  // Function to handle Text-to-Speech (still using Gemini TTS)
+  const handlePlayTranslatedText = async () => {
+    if (!translatedText) {
+      setError("No translated text to play.");
+      return;
+    }
 
-  //     const payload = {
-  //       contents: [
-  //         {
-  //           parts: [{ text: translatedText }],
-  //         },
-  //       ],
-  //       generationConfig: {
-  //         responseModalities: ["AUDIO"],
-  //         speechConfig: {
-  //           voiceConfig: {
-  //             prebuiltVoiceConfig: { voiceName: "Kore" }, // You can choose other voices like 'Zephyr', 'Puck', etc.
-  //           },
-  //         },
-  //       },
-  //       model: "gemini-2.5-flash-preview-tts",
-  //     };
-  //     const apiKey = "";
-  //     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+    setIsLoading(true);
+    setError("");
 
-  //     try {
-  //       let response;
-  //       let retries = 0;
-  //       const MAX_RETRIES = 5;
-  //       const BASE_DELAY = 1000; // 1 second
+    const payload = {
+      contents: [
+        {
+          parts: [{ text: translatedText }],
+        },
+      ],
+      generationConfig: {
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName: "Kore" }, // You can choose other voices
+          },
+        },
+      },
+      model: "gemini-2.5-flash-preview-tts",
+    };
+    const apiKey = ""; // Canvas will provide this
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
-  //       while (retries < MAX_RETRIES) {
-  //         response = await fetch(apiUrl, {
-  //           method: "POST",
-  //           headers: { "Content-Type": "application/json" },
-  //           body: JSON.stringify(payload),
-  //         });
+    try {
+      let response;
+      let retries = 0;
+      const MAX_RETRIES = 5;
+      const BASE_DELAY = 1000; // 1 second
 
-  //         if (response.ok) {
-  //           break; // Success
-  //         } else if (response.status === 429) {
-  //           // Too Many Requests - implement exponential backoff
-  //           const delay = BASE_DELAY * Math.pow(2, retries);
-  //           console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
-  //           await new Promise((resolve) => setTimeout(resolve, delay));
-  //           retries++;
-  //         } else {
-  //           // Other errors
-  //           throw new Error(
-  //             `API error: ${response.status} ${response.statusText}`
-  //           );
-  //         }
-  //       }
+      while (retries < MAX_RETRIES) {
+        response = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
 
-  //       if (!response.ok) {
-  //         throw new Error("Failed to get response after multiple retries.");
-  //       }
+        if (response.ok) {
+          break; // Success
+        } else if (response.status === 429) {
+          const delay = BASE_DELAY * Math.pow(2, retries);
+          console.warn(`Rate limit exceeded. Retrying in ${delay / 1000}s...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          retries++;
+        } else {
+          throw new Error(
+            `API error: ${response.status} ${response.statusText}`
+          );
+        }
+      }
 
-  //       const result = await response.json();
-  //       const part = result?.candidates?.[0]?.content?.parts?.[0];
-  //       const audioData = part?.inlineData?.data;
-  //       const mimeType = part?.inlineData?.mimeType;
+      const result = await response.json();
+      const part = result?.candidates?.[0]?.content?.parts?.[0];
+      const audioData = part?.inlineData?.data;
+      const mimeType = part?.inlineData?.mimeType;
 
-  //       if (audioData && mimeType && mimeType.startsWith("audio/")) {
-  //         const sampleRateMatch = mimeType.match(/rate=(\d+)/);
-  //         const sampleRate = sampleRateMatch
-  //           ? parseInt(sampleRateMatch[1], 10)
-  //           : 16000; // Default to 16kHz if not found
+      if (audioData && mimeType && mimeType.startsWith("audio/")) {
+        const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+        const sampleRate = sampleRateMatch
+          ? parseInt(sampleRateMatch[1], 10)
+          : 16000; // Default to 16kHz if not found
 
-  //         const pcmData = base64ToArrayBuffer(audioData);
-  //         const wavBlob = pcmToWav(pcmData, sampleRate);
-  //         const audioUrl = URL.createObjectURL(wavBlob);
+        const pcmData = base64ToArrayBuffer(audioData);
+        const wavBlob = pcmToWav(pcmData, sampleRate);
+        const audioUrl = URL.createObjectURL(wavBlob);
 
-  //         if (audioPlayer) {
-  //           audioPlayer.src = audioUrl;
-  //           audioPlayer.play();
-  //         } else {
-  //           console.error("Audio player not initialized.");
-  //           setError("Audio player not ready.");
-  //         }
-  //       } else {
-  //         setError("No audio data found or unexpected API response structure.");
-  //       }
-  //     } catch (err) {
-  //       console.error("Error during TTS:", err);
-  //       setError(`Failed to generate speech: ${err.message}`);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+        if (audioPlayer) {
+          audioPlayer.src = audioUrl;
+          audioPlayer.play();
+        } else {
+          console.error("Audio player not initialized.");
+          setError("Audio player not ready.");
+        }
+      } else {
+        setError("No audio data found or unexpected API response structure.");
+      }
+    } catch (err: any) {
+      console.error("Error during TTS:", err);
+      setError(`Failed to generate speech: ${err.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Function to start/stop speech recognition
+  const toggleSpeechRecognition = () => {
+    if (!recognitionRef.current) {
+      setError("Speech Recognition API not supported or initialized.");
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+    } else {
+      setSourceText(""); // Clear previous text when starting new recognition
+      setTranslatedText(""); // Clear previous translation
+      setError(""); // Clear previous errors
+      setIsListening(true);
+      recognitionRef.current.start();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 font-inter">
@@ -296,11 +348,16 @@ const Translator = () => {
               >
                 Source Language
               </label>
-              <Select id="source-language" className={undefined}>
-                <option value="english">English</option>
-                <option value="spanish">Spanish</option>
-                <option value="french">French</option>
-                <option value="german">German</option>
+              <Select
+                id="source-language"
+                value={sourceLanguage}
+                onChange={(e: any) => setSourceLanguage(e.target.value)}
+              >
+                <option value="en-US">English (US)</option>
+                <option value="es">Spanish</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="hi">Hindi</option>
               </Select>
             </div>
             <div className="flex flex-col items-start">
@@ -310,11 +367,16 @@ const Translator = () => {
               >
                 Target Language
               </label>
-              <Select id="target-language" className={undefined}>
-                <option value="spanish">Spanish</option>
-                <option value="english">English</option>
-                <option value="french">French</option>
-                <option value="german">German</option>
+              <Select
+                id="target-language"
+                value={targetLanguage}
+                onChange={(e: any) => setTargetLanguage(e.target.value)}
+              >
+                <option value="es">Spanish</option>
+                <option value="en-US">English (US)</option>
+                <option value="fr">French</option>
+                <option value="de">German</option>
+                <option value="hi">Hindi</option>
               </Select>
             </div>
           </div>
@@ -327,10 +389,12 @@ const Translator = () => {
           >
             <Button
               className="w-32 h-32 rounded-full bg-blue-600 flex items-center justify-center flex-col shadow-xl hover:bg-blue-700 transition-colors"
-              //   onClick={handleMicrophoneClick}
-              disabled={isLoading}
+              onClick={toggleSpeechRecognition}
+              disabled={isLoading} // Disable if API call is in progress
             >
-              {isLoading ? (
+              {isListening ? (
+                <div className="animate-pulse rounded-full h-8 w-8 border-b-2 border-white"></div>
+              ) : isLoading ? (
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               ) : (
                 <svg
@@ -349,7 +413,11 @@ const Translator = () => {
                 </svg>
               )}
               <span className="text-white text-sm font-semibold">
-                {isLoading ? "Processing..." : "Tap to Speak"}
+                {isListening
+                  ? "Listening..."
+                  : isLoading
+                  ? "Processing..."
+                  : "Tap to Speak"}
               </span>
             </Button>
           </motion.div>
@@ -361,8 +429,8 @@ const Translator = () => {
             <Textarea
               placeholder="Your speech will appear here for transcription..."
               value={sourceText}
-              onChange={(e: any) => setSourceText(e.target.value)} // Allow typing for simulation
-              disabled={isLoading}
+              onChange={(e: any) => setSourceText(e.target.value)} // Allow typing for simulation or manual input
+              disabled={isLoading || isListening}
             />
             <div className="relative">
               <Textarea
@@ -372,7 +440,7 @@ const Translator = () => {
               />
               <button
                 className="absolute bottom-4 right-4 text-gray-400 hover:text-purple-400 transition-colors"
-                // onClick={handlePlayTranslatedText}
+                onClick={handlePlayTranslatedText}
                 disabled={isLoading || !translatedText}
               >
                 {isLoading ? (
