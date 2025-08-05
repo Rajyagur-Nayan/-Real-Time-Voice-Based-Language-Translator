@@ -25,6 +25,7 @@ app.use("/signup", require("./src/routes/user/signup.js"));
 app.use("/login", require("./src/routes/user/login.js"));
 app.use("/translate", require("./src/routes/translate/translate.js"));
 app.use("/code", require("./src/routes/code/code.js"));
+app.use("/export", require("./src/routes/history/export.js"));
 app.use("/history",require("./src/routes/history/aiHistory.js"))
 app.use('/profile', require('./src/routes/profile/profile.js'));
 
