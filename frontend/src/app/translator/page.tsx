@@ -1,12 +1,10 @@
 import React from "react";
-import Home from "../pages/Home";
-import { Toaster } from "react-hot-toast";
+import Translator from "../pages/Translater";
 
 const page = () => {
   return (
     <div>
-      <Home />
-      <Toaster />
+      <Translator />
     </div>
   );
 };
