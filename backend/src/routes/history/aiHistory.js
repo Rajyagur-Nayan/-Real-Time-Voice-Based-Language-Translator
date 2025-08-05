@@ -3,9 +3,7 @@ const router = express.Router();
 const isLoggedIn = require('../../middelwear/login.js')
 const pool = require('../../connections/DB.connect.js')
 
-
-
-router.get('/gethistory', isLoggedIn, async (req, res) => {
+router.get('/', isLoggedIn, async (req, res) => {
   try {
     const userId = req.user.id;
 
@@ -21,7 +19,7 @@ router.get('/gethistory', isLoggedIn, async (req, res) => {
   }
 });
 
-router.get('/clearhistory',isLoggedIn, async (req, res) => {
+router.delete('/clearhistory',isLoggedIn, async (req, res) => {
   try {
     const userId = req.user.id;
 

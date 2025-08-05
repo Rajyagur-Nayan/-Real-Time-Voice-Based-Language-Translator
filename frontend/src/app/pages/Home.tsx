@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 const Button = ({ children, className, ...props }: any) => (
   <button
@@ -80,9 +81,12 @@ const Home = () => {
           </motion.div>
 
           <motion.div variants={fadeInVariants} className="mt-8 md:mt-10">
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700">
+            <Link
+              href="/translator"
+              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 p-5 rounded-2xl hover:to-purple-700"
+            >
               Start Translating
-            </Button>
+            </Link>
           </motion.div>
         </div>
       </motion.section>
