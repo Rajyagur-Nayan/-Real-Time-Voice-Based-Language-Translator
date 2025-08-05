@@ -11,6 +11,8 @@ import { Switch } from '@/components/ui/switch';
 import { Search, Edit, Play, Facebook, Twitter, Linkedin, Instagram, Home, History, Settings, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -25,10 +27,50 @@ interface EditProfileModalProps {
 const EditProfileModal = ({ isOpen, onClose, currentFullName, currentEmail, onSave }: EditProfileModalProps) => {
   const [newFullName, setNewFullName] = useState(currentFullName);
   const [newEmail, setNewEmail] = useState(currentEmail);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSave = () => {
-    onSave(newFullName, newEmail);
-    onClose();
+  const handleSave = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Make the API call to update the user profile
+      const response = await axios.put(
+        "http://localhost:4000/profile/update", // Replace with your actual API base URL
+        {
+          name: newFullName,
+          email: newEmail,
+        },
+        // {
+        //   headers: {
+        //     Authorization: `Bearer ${localStorage.getItem("token")}`, // Assuming you store a JWT token in localStorage
+        //   },
+        // }
+      );
+
+      // Update the parent component's state with the new profile data
+      onSave(newFullName, newEmail);
+
+      // Show success notification
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      });
+
+      // Close the modal
+      onClose();
+    } catch (err: any) {
+      // Handle errors
+      setError(err.response?.data?.error || "Failed to update profile");
+      toast({
+        title: "Error",
+        description: err.response?.data?.error || "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -37,7 +79,7 @@ const EditProfileModal = ({ isOpen, onClose, currentFullName, currentEmail, onSa
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm p-4" // Changed background to blurred white
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white bg-opacity-30 backdrop-blur-sm p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -53,10 +95,12 @@ const EditProfileModal = ({ isOpen, onClose, currentFullName, currentEmail, onSa
               size="icon"
               className="absolute top-4 right-4 text-gray-500 hover:bg-gray-100"
               onClick={onClose}
+              disabled={isLoading}
             >
               <X className="h-5 w-5" />
             </Button>
             <h2 className="text-2xl font-bold mb-6 text-center">Edit Profile</h2>
+            {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="modalFullName">Full Name</Label>
@@ -64,6 +108,7 @@ const EditProfileModal = ({ isOpen, onClose, currentFullName, currentEmail, onSa
                   id="modalFullName"
                   value={newFullName}
                   onChange={(e) => setNewFullName(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div className="space-y-2">
@@ -72,15 +117,20 @@ const EditProfileModal = ({ isOpen, onClose, currentFullName, currentEmail, onSa
                   id="modalEmailAddress"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </div>
             <div className="flex justify-end space-x-4 mt-8">
-              <Button variant="ghost" onClick={onClose}>
+              <Button variant="ghost" onClick={onClose} disabled={isLoading}>
                 Cancel
               </Button>
-              <Button className="bg-blue-500 text-white hover:bg-blue-600" onClick={handleSave}>
-                Save Changes
+              <Button
+                className="bg-blue-500 text-white hover:bg-blue-600"
+                onClick={handleSave}
+                disabled={isLoading}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
               </Button>
             </div>
           </motion.div>
