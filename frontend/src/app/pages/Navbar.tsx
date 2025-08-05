@@ -63,19 +63,6 @@ const Navbar = () => {
               Profile
             </a>
             {/* User Avatar Placeholder */}
-            <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-sm">
-              <img
-                src="https://placehold.co/32x32/6b7280/ffffff?text=U"
-                alt="User Avatar"
-                className="rounded-full"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.onerror = null;
-                  target.src =
-                    "https://placehold.co/32x32/6b7280/ffffff?text=U";
-                }}
-              />
-            </div>
             {isAuthenticated ? (
               <Button onClick={logout} className="bg-red-600 hover:bg-red-700">
                 Logout
@@ -153,6 +140,12 @@ const Navbar = () => {
               className="block text-gray-300 hover:text-purple-400 transition-colors py-2"
             >
               Translator
+            </a>
+            <a
+              href="/profile"
+              className="block text-gray-300 hover:text-purple-400 transition-colors py-2"
+            >
+              Profile
             </a>
             <div className="flex flex-col space-y-2 mt-4">
               {isAuthenticated ? (
